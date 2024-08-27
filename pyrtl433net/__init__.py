@@ -220,8 +220,9 @@ class client:
 				opts.append('-M')
 				opts.append(m)
 		if 'fsk' in cfg:
-			opts.append('-Y')
-			opts.append(cfg['fsk'])
+			for y in cfg['fsk']:
+				opts.append('-Y')
+				opts.append(y)
 
 		# All decoders includeed by default
 		# Otherwise "-R X" to include and "-R -X" to exclude
