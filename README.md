@@ -80,6 +80,7 @@ def rtl433_handler(server, client, packet):
 > [!NOTE]
 > The function must be exactly as shown with the function name, three positional parameters, and their names.
 > Anything else is not accepted.
+> Return values are ignored.
 
 The server parameter is the server object instance itself.
 The client parameter is the (IP,PORT) tuple.
