@@ -38,6 +38,11 @@ DEFAULT_PORT = 4333
 DEFAULT_BIN = 'rtl_433'
 
 def parse_args(args=None):
+	"""
+	Given a list of args @args, parse them and return the parser object.
+	If @args is None, then it will pull from the sys.argv.
+	"""
+
 	p = argparse.ArgumentParser(
 		prog="pyrtl433net",
 		description="Run multiple instances to work a network of rtl_433 software defined radios and feed received data to a single server"
@@ -45,6 +50,7 @@ def parse_args(args=None):
 	p.add_argument('--server', action="store", nargs=1, metavar="CONFIG_FILE", help="Run as the server using the specified config file")
 	p.add_argument('--client', action="store", nargs=1, metavar="IP:[PORT]", help="Run as the clinet connecting to the specified server")
 	p.add_argument('--rtl433', action="store", nargs=1, metavar="ARG", default=DEFAULT_BIN, help="Override the rtl_433 binary name, can specify the path too")
+	p.add_argument('--dryrun', action="store_true", default=False, help="Dry run for the client, meaning this will formulate the rtl_433 command, print it out, and quit. This does require the server to be running to get the configuration.")
 
 	args = p.parse_args(args)
 	if not args.server and not args.client:
@@ -80,6 +86,22 @@ class server:
 				return {"error": 'Unrecognized command'}
 
 	def load(self, fname):
+		"""
+		From @fname, load it in as a configuration file for the server.
+		Expected sections:
+			[server] contains interface and port to specify where to listen
+			[rtl433] contains frequency, metadata, and fsk
+				frequency is whatever is passed via -f to rtl_433 (eg, "915M" for 915 MHz)
+				metadata is what you want to pass to -M, space-delimited list will result in multiple -M arguments
+				fsk is what you want to pass to -Y for the FSK pulse detector mode, space-delimited list will result in multiple -Y arguments
+			[rtl433.decoders] contains 3 possible options
+				include is what decoders to include using -R, if "*" then all decoders are included
+				exclude is what decoders to exclude, by default this is none
+				key=value is custom generic decoders passed by -X where key is used as the decoder name and formed by "n=key,value"
+
+		This is converted to a simple dictionary object tree and passed to the client when requested.
+		"""
+
 		c = configparser.ConfigParser()
 		c.read(fname)
 		if 'server' not in c.sections():
@@ -91,6 +113,16 @@ class server:
 		self._frequency = c.get('rtl433', 'frequency')
 		self._metadata = c.get('rtl433', 'metadata', fallback=None)
 		self._fsk = c.get('rtl433', 'fsk', fallback=None)
+
+		# Space-delimited list of options to pass
+		if len(self._metadata):
+			self._metadata = [_.strip() for _ in self._metadata.split(' ')]
+			self._metadata = [_ for _ in self._metadata if len(_)]
+
+		# Space-delimited list of options to pass
+		if len(self._fsk):
+			self._fsk = [_.strip() for _ in self._fsk.split(' ')]
+			self._fsk = [_ for _ in self._fsk if len(_)]
 
 		self._include = c.get('rtl433.decoders', 'include', fallback='*')
 		self._exclude = c.get('rtl433.decoders', 'exclude', fallback=None)
@@ -184,8 +216,9 @@ class client:
 			opts.append('-f')
 			opts.append(cfg['frequency'])
 		if 'metadata' in cfg:
-			opts.append('-M')
-			opts.append(cfg['metadata'])
+			for m in cfg['metadata']:
+				opts.append('-M')
+				opts.append(m)
 		if 'fsk' in cfg:
 			opts.append('-Y')
 			opts.append(cfg['fsk'])

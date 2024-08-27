@@ -32,7 +32,10 @@ def _main_client_innerloop(cli, args, cnt):
 		opts.insert(0, args.rtl433[0])
 		opts.append('-F')
 		opts.append('json')
-		print(opts)
+
+		if args.dryrun:
+			print(" ".join(opts))
+			sys.exit(0)
 
 		with subprocess.Popen(opts, stdout=subprocess.PIPE) as p:
 			while True:
