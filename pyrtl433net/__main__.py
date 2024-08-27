@@ -23,7 +23,7 @@ def main_server(args):
 		print(s._config)
 		sys.exit(0)
 
-	s.serve_forever()
+	s.serve_forever(args)
 
 def main_client(args):
 	"""
@@ -45,7 +45,6 @@ def main_client(args):
 def _main_client_innerloop(cli, args):
 	"""
 	Inner loop that invokes rtl_433 as a process, read the stdout from it, and send each radio packet to the server.
-
 	"""
 
 	cfg = cli.getconfig()
@@ -57,7 +56,6 @@ def _main_client_innerloop(cli, args):
 	# Lastly, spit out the radio packets as a JSON object
 	opts.append('-F')
 	opts.append('json')
-
 
 	if args.dryrun:
 		print(" ".join(opts))

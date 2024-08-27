@@ -28,6 +28,8 @@ The only configuration the client takes is the interface and port of the server,
 
 import argparse
 import configparser
+import importlib
+import inspect
 import json
 import socket
 import socketserver
@@ -52,6 +54,7 @@ def parse_args(args=None):
 	p.add_argument('--client', action="store", nargs=1, metavar="IP:[PORT]", help="Run as the clinet connecting to the specified server")
 	p.add_argument('--rtl433', action="store", nargs=1, metavar="ARG", default=DEFAULT_BIN, help="Override the rtl_433 binary name, can specify the path too")
 	p.add_argument('--dryrun', action="store_true", default=False, help="Dry run for the client, meaning this will formulate the rtl_433 command, print it out, and quit. This does require the server to be running to get the configuration. For the server, this will parse the configuration, print it out, and quit without binding the server socket.")
+	p.add_argument('--handler', action="store", nargs=1, metavar="PY", help="Python handler for packets, this is fed to importlib.import_module and rtl433_handler(server, client, packet) is called for each packet received")
 
 	args = p.parse_args(args)
 	if not args.server and not args.client:
@@ -100,13 +103,11 @@ class server:
 			Executing/handling commands is done here.
 			"""
 
-			print(['request', self.client_address, data])
-
 			if data['cmd'] == 'getconfig':
 				return {"ret": "ok", 'config': self.server._config}
 
 			elif data['cmd'] == 'packet':
-				print(['packet', data['packet']])
+				self.server._handler.rtl433_handler(self.server, self.client_address, data['packet'])
 				return {"ret": "ok"}
 
 			else:
@@ -173,11 +174,33 @@ class server:
 			},
 		}
 
-	def serve_forever(self):
+	def serve_forever(self, args):
 		"""
 		Basic server function to handle incoming packets from clients.
 		Bind to socket, listen, and invoke _MyUDPHandler to handle the packets.
 		"""
+
+		if args.handler is None:
+			raise Exception("Expect a handler to be provided with --handler")
+
+		# Ensure the handler function is good
+		hand = importlib.import_module(args.handler[0])
+		fname = 'rtl433_handler'
+		if fname not in dir(hand):
+			raise ValueError("Imported handler object does not have a function named %s()" % fname)
+
+		# Get function as an object
+		f = hand.rtl433_handler
+
+		# Reflect and get arguments
+		fargs = inspect.getfullargspec(f)
+		if len(fargs.args) != 3:
+			raise ValueError("Imported handler object has rtl433_handler() but does not take 3 positional arguments: %s" % str(fargs.args))
+
+		# Enforce argument names so they're in the right order
+		if fargs.args[0] != 'server': raise ValueError("Imported handler object has rtl433_handler(%s) but first argument is not 'server'" % ",".join(fargs.args))
+		if fargs.args[1] != 'client': raise ValueError("Imported handler object has rtl433_handler(%s) but second argument is not 'client'" % ",".join(fargs.args))
+		if fargs.args[2] != 'packet': raise ValueError("Imported handler object has rtl433_handler(%s) but third argument is not 'packet'" % ",".join(fargs.args))
 
 		with socketserver.UDPServer((self._iface, self._port), __class__._MyUDPHandler) as s:
 			print("Listening to UDP %s:%d" % (self._iface, self._port))
@@ -185,6 +208,7 @@ class server:
 			# Copy over the config
 			# Access self.server._config within _MyUDPHandler.handle
 			s._config = self._config
+			s._handler = hand
 
 			s.serve_forever()
 
