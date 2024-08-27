@@ -20,9 +20,10 @@ def main_client(args):
 	with pyrtl433net.client(args.client[0]) as cli:
 		cnt = 1
 		while True:
-			_main_client_innerloop(cli, args)
+			_main_client_innerloop(cli, args, cnt)
+			cnt += 1
 
-def _main_client_innerloop(cli, args):
+def _main_client_innerloop(cli, args, cnt):
 	try:
 		cfg = cli.getconfig()
 		opts = cli.config_to_args(cfg)
@@ -43,7 +44,6 @@ def _main_client_innerloop(cli, args):
 	except socket.timeout:
 		print("Server not found %d" % cnt)
 		time.sleep(1.0)
-		cnt += 1
 
 def main(args=None):
 	args = pyrtl433net.parse_args(args)
