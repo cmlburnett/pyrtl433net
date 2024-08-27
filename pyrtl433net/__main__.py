@@ -16,6 +16,10 @@ def main_server(args):
 
 	s = pyrtl433net.server()
 	s.load(fname)
+	if args.dryrun:
+		print(s._config)
+		sys.exit(0)
+
 	s.serve_forever()
 
 def main_client(args):

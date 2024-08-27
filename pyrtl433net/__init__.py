@@ -50,7 +50,7 @@ def parse_args(args=None):
 	p.add_argument('--server', action="store", nargs=1, metavar="CONFIG_FILE", help="Run as the server using the specified config file")
 	p.add_argument('--client', action="store", nargs=1, metavar="IP:[PORT]", help="Run as the clinet connecting to the specified server")
 	p.add_argument('--rtl433', action="store", nargs=1, metavar="ARG", default=DEFAULT_BIN, help="Override the rtl_433 binary name, can specify the path too")
-	p.add_argument('--dryrun', action="store_true", default=False, help="Dry run for the client, meaning this will formulate the rtl_433 command, print it out, and quit. This does require the server to be running to get the configuration.")
+	p.add_argument('--dryrun', action="store_true", default=False, help="Dry run for the client, meaning this will formulate the rtl_433 command, print it out, and quit. This does require the server to be running to get the configuration. For the server, this will parse the configuration, print it out, and quit without binding the server socket.")
 
 	args = p.parse_args(args)
 	if not args.server and not args.client:
