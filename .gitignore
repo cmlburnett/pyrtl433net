@@ -1,3 +1,6 @@
 *swo
 *swp
 __pycache__
+*cfg
+dist
+pyrtl433net.egg-info
