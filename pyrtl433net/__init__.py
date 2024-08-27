@@ -2,12 +2,12 @@
 pyrtl433net -- network of rtl_433 devices
 
 To run as the server, supply the --server switch and provide a configuration file:
-	python3 -m pyrtl433net --server server.cfg
+	python3 -m pyrtl433net --server server.cfg --handler myhandler
 
 ==== server.cfg ====
 [server]
-port = 4333
 interface = 0.0.0.0
+port = 4333
 
 [rtl433]
 frequency = 915M
@@ -17,6 +17,8 @@ fsk = minimax
 [rtl433.decoders]
 WS85 = m=FSK_PCM,s=58,l=58,r=2048,preamble=aa2dd4
 ==== server.cfg ====
+
+The --handler is a import'able python object with an rtl433_handler(server,client,packet) function to handle the incoming packets.
 
 
 To run as the client, supply the --client switch with the server and port to connect to:
