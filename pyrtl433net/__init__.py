@@ -36,6 +36,8 @@ import sys
 DEFAULT_PORT = 4333
 DEFAULT_BIN = 'rtl_433'
 
+__all__ = ['parse_args', 'server', 'client']
+
 def parse_args(args=None):
 	"""
 	Given a list of args @args, parse them and return the parser object.
@@ -73,10 +75,16 @@ class server:
 	"""
 
 	class _MyUDPHandler(socketserver.BaseRequestHandler):
+		"""
+		Handler class for a UDP server.
+		"""
+
 		def handle(self):
-			data = self.request[0].strip()
+			# request is a 2 tuple of (data,socket)
+			data = self.request[0]
 			sock = self.request[1]
 			try:
+				# Expect that the data is a JSON object, handle, and return a serialized JSON ojbect
 				j = json.loads(data)
 				ret = self._handle(j)
 				ret = json.dumps(ret)
@@ -87,12 +95,20 @@ class server:
 			sock.sendto(ret.encode('utf-8'), self.client_address)
 
 		def _handle(self, data):
+			"""
+			Actually handle the client data.
+			Executing/handling commands is done here.
+			"""
+
 			print(['request', self.client_address, data])
+
 			if data['cmd'] == 'getconfig':
 				return {"ret": "ok", 'config': self.server._config}
+
 			elif data['cmd'] == 'packet':
 				print(['packet', data['packet']])
 				return {"ret": "ok"}
+
 			else:
 				print("Unknown command")
 				print(data)
@@ -158,15 +174,28 @@ class server:
 		}
 
 	def serve_forever(self):
+		"""
+		Basic server function to handle incoming packets from clients.
+		Bind to socket, listen, and invoke _MyUDPHandler to handle the packets.
+		"""
+
 		with socketserver.UDPServer((self._iface, self._port), __class__._MyUDPHandler) as s:
 			print("Listening to UDP %s:%d" % (self._iface, self._port))
 
 			# Copy over the config
+			# Access self.server._config within _MyUDPHandler.handle
 			s._config = self._config
 
 			s.serve_forever()
 
 class client:
+	"""
+	UDP client that sends packets to the server.
+	Transport layer is JSON encoded at UTF-8.
+
+	rtl_433 configuration is pulled from the server over this protocol too.
+	"""
+
 	def __init__(self, hostport):
 		if ':' in hostport:
 			host,port = hostport.split(':',1)
@@ -179,23 +208,33 @@ class client:
 		self._port = port
 
 	def __enter__(self):
+		# Not much a context since UDP is stateless, but in case it is switched to TCP then already using a context manager is easy
 		return self
 
 	def __exit__(self, exc_type, exc_value, traceback):
 		return False
 
 	def write(self, data):
+		"""
+		Write a request and read the response.
+		@data is a python object that is serialized as JSON and UTF-8 encoded.
+		The response is likewise assumed to be UTF-8 encoded JSON and returned as a python object.
+		"""
 		print("Sending to %s:%d" % (self._host,self._port))
 
 		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		s.settimeout(1.0)
 		s.sendto(json.dumps(data).encode('utf-8'), (self._host,self._port))
-		ret = s.recv(1024)
+		ret = s.recv(1024*10)
 		ret = ret.decode('utf-8')
 		ret = json.loads(ret)
 		return ret
 
 	def getconfig(self):
+		"""
+		Poll the server for configuration information.
+		"""
+
 		req = {
 			'cmd': 'getconfig',
 		}
@@ -208,6 +247,10 @@ class client:
 		return ret['config']
 
 	def sendpacket(self, packet):
+		"""
+		Send a radio packet to the server.
+		"""
+
 		req = {
 			'cmd': 'packet',
 			'packet': packet,
@@ -218,11 +261,15 @@ class client:
 		elif 'exception' in ret:
 			raise Exception("Server exception: %s(%s)" % ret['exception'])
 
-		return ret
-
+		# Nothing back from the server
+		return None
 
 	@staticmethod
 	def config_to_args(cfg):
+		"""
+		Convert a server.cfg INI style configuration file into python dictionary object tree.
+		"""
+
 		opts = []
 
 		if 'frequency' in cfg:
