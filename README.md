@@ -49,6 +49,10 @@ fsk = minimax
 WS85 = m=FSK_PCM,s=58,l=58,r=2048,preamble=aa2dd4
 ```
 
+> [!NOTE]
+> interface is 0.0.0.0 by default and stanard port is 4333 (a play on 433 in rtl_433).
+> The other parameters are also not required, if not provided then no options will be generated to rtl_433 so you will get its default behavior.
+
 The server requires some sort of python handler of the packets.
 This could be a singular python file or an installed module.
 
