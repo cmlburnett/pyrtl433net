@@ -119,3 +119,10 @@ Please note that this server model does not use threads or anything fancy, so th
 So if your handler is not deterministic and not speedy, you may experience dropped packets.
 Highly recommend an intermediary log of some sort if the ultimate data sink is sporadic, buggy, or can take time.
 
+# Todo
+- [ ] Enable time delta checking between server and clients so packets can be better aligned in time (all clients should still use NTP)
+- [ ] Enable client notification that the configuration has changed (client restarts rtl_433 with new configuration)
+- [ ] Introduce a filtering pipineline with basic de-duplication provided in pyrtl433net
+- [ ] Buy additional radios for testing de-duplication
+- [ ] Add an easy way to map sensors to MQTT packets (probably provide a base class that is derived by the custom handler)
+
