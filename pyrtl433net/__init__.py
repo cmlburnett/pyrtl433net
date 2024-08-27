@@ -35,6 +35,7 @@ import socketserver
 import sys
 
 DEFAULT_PORT = 4333
+DEFAULT_BIN = 'rtl_433'
 
 def parse_args(args=None):
 	p = argparse.ArgumentParser(
@@ -43,6 +44,8 @@ def parse_args(args=None):
 	)
 	p.add_argument('--server', action="store", nargs=1, metavar="CONFIG_FILE", help="Run as the server using the specified config file")
 	p.add_argument('--client', action="store", nargs=1, metavar="IP:[PORT]", help="Run as the clinet connecting to the specified server")
+	p.add_argument('--rtl433', action="store", nargs=1, metavar="ARG", default=DEFAULT_BIN, help="Override the rtl_433 binary name, can specify the path too")
+
 	args = p.parse_args(args)
 	if not args.server and not args.client:
 		p.print_help()
@@ -68,6 +71,8 @@ class server:
 			print(['request', self.client_address, data])
 			if data['cmd'] == 'getconfig':
 				return self.server._config
+			elif data['cmd'] == 'packet':
+				pass
 			else:
 				return {"error": 'Unrecognized command'}
 
@@ -153,4 +158,45 @@ class client:
 			raise Exception("Server exception: %s(%s)" % ret['exception'])
 
 		return ret
+
+	@staticmethod
+	def config_to_args(cfg):
+		opts = []
+
+		if 'frequency' in cfg:
+			opts.append('-f')
+			opts.append(cfg['frequency'])
+		if 'metadata' in cfg:
+			opts.append('-M')
+			opts.append(cfg['metadata'])
+		if 'fsk' in cfg:
+			opts.append('-Y')
+			opts.append(cfg['fsk'])
+
+		# All decoders includeed by default
+		# Otherwise "-R X" to include and "-R -X" to exclude
+		if cfg['decoders']['include'] == '*':
+			pass
+		else:
+			for part in cfg['decoders']['include'].split(' '):
+				part = part.strip()
+				if len(part):
+					opts.append('-R')
+					opts.append(part)
+
+		if cfg['decoders']['exclude'] is None:
+			pass
+		else:
+			for part in cfg['decoders']['exclude'].split(' '):
+				part = part.strip()
+				if len(part):
+					opts.append('-R')
+					opts.append('-' + part)
+
+		# Custom decocers
+		for k in cfg['decoders']['customs']:
+			opts.append('-X')
+			opts.append(k)
+
+		return opts
 
