@@ -10,11 +10,11 @@ On the server you must add functionality to pipe the data to your.
 The problem being solved is the need to have multiple SDR's around the house to receive sensors distributed around the house.
 Due to walls, dirt, etc not all sensors can be within range of a single radio.
 This, thus, poses a logistic problem of having a pool of sensors and need for multiple radios that WILL have overlap.
-One way to solve this is to filter sensors on each radio, another way is to poool all packets to a single location and deal with duplicate packets.
+One way to solve this is to filter sensors on each radio, another way is to pool all packets to a single location and deal with duplicate packets.
 
 A Raspberry Pi (either a 3/4/5/etc or a Pi Zero W or whatever) using a USB-based SDR is in the range of $50-75 so having a few of these to adequately cover all sensors is doable.
 
-This would also permit large area coverage provided you have ethernet or wifi coverage (ie, a shed that is 100 yards away but has point-to-point wifi bridge) without having to have ISM-banded sensors needing signal boosters.
+This would also permit large area coverage provided you have ethernet or wifi coverage (ie, a shed that is 300 yards away but has point-to-point wifi bridge) without having to have anything special with the ISM-banded sensors.
 
 # Installation
 
@@ -94,4 +94,16 @@ There is no mechanism to set up clients with different configurations (mostly be
 At this time, if the configuration is changed, the server needs to be shut down and restarted.
 Additionally, the clients need to time out (1 second) so that they reconnect and pull the configuration from the server again.
 Future modification will be updating the clients that the config changed so they re-getconfig without restarting.
+
+# Handler implementation
+The packet handler is defined above.
+What the function does with the packet is entirely up to you.
+- Log it to a database
+- Filter out sensors and send as MQTT messages
+- Send Push or SMS notifications based on data received
+- Throttle packets so sensors that update too often are restricted
+
+Please note that this server model does not use threads or anything fancy, so the time spent in the handler WILL make other clients wait.
+So if your handler is not deterministic and not speedy, you may experience dropped packets.
+Highly recommend an intermediary log of some sort if the ultimate data sink is sporadic, buggy, or can take time.
 
