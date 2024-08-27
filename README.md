@@ -60,6 +60,10 @@ def rtl433_handler(server, client, packet):
 	print(['handler', packet])
 ```
 
+> [!NOTE]
+> The function must be exactly as shown with the function name, three positional parameters, and their names.
+> Anything else is not accepted.
+
 # Module use comments
 The purpose of this python module is to be able to deploy multiple SDR's in an area and push all received radio packets to a central location for processing.
 This means the server should be able to handle receiving duplicate packets from multiple radios and do so gracefully.
