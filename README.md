@@ -4,7 +4,9 @@ rtl_433 is a C-based app that interfaces with software defined radios (SDR) such
   https://www.nooelec.com/store/sdr/sdr-receivers/nesdr-smart-sdr.html
 
 This comes as a server/client combo where the clients will run rtl_433 and pipe the output to the server.
-On the server you must add functionality to pipe the data to your.
+On the server you must add functionality to pipe the data to whatever you want to use to actually process the data.
+
+Essentially, this is a IP/UDP transport and aggregator for SDR's.
 
 # Motivation
 The problem being solved is the need to have multiple SDR's around the house to receive sensors distributed around the house.
