@@ -72,7 +72,8 @@ class server:
 			if data['cmd'] == 'getconfig':
 				return self.server._config
 			elif data['cmd'] == 'packet':
-				pass
+				print(['packet', data['packet']])
+				return {"ret": "ok"}
 			else:
 				return {"error": 'Unrecognized command'}
 
@@ -157,6 +158,19 @@ class client:
 		elif 'exception' in ret:
 			raise Exception("Server exception: %s(%s)" % ret['exception'])
 
+		return ret
+
+	def sendpacket(self, packet):
+		dat = {
+			'cmd': 'packet',
+			'data': packet,
+		}
+		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		s.settimeout(1.0)
+		s.sendto(json.dumps(data).encode('utf-8'), (self._host,self._port))
+		ret = s.recv(1024)
+		ret = ret.decode('utf-8')
+		ret = json.loads(ret)
 		return ret
 
 	@staticmethod

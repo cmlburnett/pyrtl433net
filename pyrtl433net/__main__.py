@@ -1,4 +1,5 @@
 
+import json
 import os
 import socket
 import subprocess
@@ -22,6 +23,7 @@ def main_client(args):
 		while True:
 			_main_client_innerloop(cli, args, cnt)
 			cnt += 1
+			time.sleep(1.0)
 
 def _main_client_innerloop(cli, args, cnt):
 	try:
@@ -32,10 +34,18 @@ def _main_client_innerloop(cli, args, cnt):
 		opts.append('json')
 		print(opts)
 
-		ret = subprocess.Popen(opts)
-		while True:
-			line = ret.stdout.readline()
-			print([line])
+		with subprocess.Popen(opts, stdout=subprocess.PIPE) as p:
+			while True:
+				if p.poll() is not None:
+					print(p.returncode)
+					return
+
+				line = p.stdout.readline()
+				line = line.decode('utf-8')
+				line = line.strip()
+				if len(line):
+					j = json.loads(line)
+					cli.sendpacket(j)
 
 		# Run rtl_433
 		# Read packets from rtl_433
