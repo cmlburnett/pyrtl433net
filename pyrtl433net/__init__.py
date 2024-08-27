@@ -287,6 +287,8 @@ class client:
 		elif 'exception' in ret:
 			raise Exception("Server exception: %s(%s)" % ret['exception'])
 
+		# TODO: return something if the configuration changed
+
 		# Nothing back from the server
 		return None
 

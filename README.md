@@ -66,3 +66,10 @@ This means the server should be able to handle receiving duplicate packets from 
 This also means the server is the point of filtration.
 This filtering could be done through include/exclude decoders, or on the server by discarding based on packet model.
 
+The configuration is stored on the server, so that all clients are configured the same way.
+There is no mechanism to set up clients with different configurations (mostly because I don't see the use case for this capability).
+
+At this time, if the configuration is changed, the server needs to be shut down and restarted.
+Additionally, the clients need to time out (1 second) so that they reconnect and pull the configuration from the server again.
+Future modification will be updating the clients that the config changed so they re-getconfig without restarting.
+
