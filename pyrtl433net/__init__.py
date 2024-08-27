@@ -163,17 +163,18 @@ class client:
 		return ret
 
 	def sendpacket(self, packet):
-		dat = {
+		req = {
 			'cmd': 'packet',
 			'packet': packet,
 		}
-		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		s.settimeout(1.0)
-		s.sendto(json.dumps(data).encode('utf-8'), (self._host,self._port))
-		ret = s.recv(1024)
-		ret = ret.decode('utf-8')
-		ret = json.loads(ret)
+		ret = self.write(req)
+		if 'error' in ret:
+			raise Exception("Response error: %s" % ret['error'])
+		elif 'exception' in ret:
+			raise Exception("Server exception: %s(%s)" % ret['exception'])
+
 		return ret
+
 
 	@staticmethod
 	def config_to_args(cfg):
