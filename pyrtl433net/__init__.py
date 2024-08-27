@@ -75,6 +75,8 @@ class server:
 				print(['packet', data['packet']])
 				return {"ret": "ok"}
 			else:
+				print("Unknown command")
+				print(data)
 				return {"error": 'Unrecognized command'}
 
 	def load(self, fname):
@@ -163,7 +165,7 @@ class client:
 	def sendpacket(self, packet):
 		dat = {
 			'cmd': 'packet',
-			'data': packet,
+			'packet': packet,
 		}
 		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		s.settimeout(1.0)

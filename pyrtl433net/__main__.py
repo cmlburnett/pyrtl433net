@@ -45,6 +45,7 @@ def _main_client_innerloop(cli, args, cnt):
 				line = line.strip()
 				if len(line):
 					j = json.loads(line)
+					print(j)
 					cli.sendpacket(j)
 
 		# Run rtl_433
