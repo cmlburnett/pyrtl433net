@@ -56,10 +56,8 @@ def _main_client_innerloop(cli, args, cnt):
 					print(j)
 					cli.sendpacket(j)
 
-		# Run rtl_433
-		# Read packets from rtl_433
-		# Send to server
 		return
+
 	except socket.timeout:
 		print("Server not found %d" % cnt)
 		time.sleep(1.0)

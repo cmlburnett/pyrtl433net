@@ -15,7 +15,6 @@ metadata = level
 fsk = minimax
 
 [rtl433.decoders]
-include = *
 WS85 = m=FSK_PCM,s=58,l=58,r=2048,preamble=aa2dd4
 ==== server.cfg ====
 
@@ -59,6 +58,20 @@ def parse_args(args=None):
 	return args
 
 class server:
+	"""
+	UDP server that listens for packets from the clients.
+	Transport layer is JSON encoded at UTF-8.
+
+	Requests from clients contain and 'cmd' key:
+		getconfig returns the configuration parsed from the server.cfg
+		packet is a radio packet received at the client end
+
+	Returned is object of
+		ret=ok if the packet was received
+		ret=error if there was an error, and the error key is set with something meaningful
+		ret=exception if there was an exception of some kind with exception key as a two tuple (exception type name, exception string value)
+	"""
+
 	class _MyUDPHandler(socketserver.BaseRequestHandler):
 		def handle(self):
 			data = self.request[0].strip()
@@ -68,7 +81,7 @@ class server:
 				ret = self._handle(j)
 				ret = json.dumps(ret)
 			except Exception as e:
-				return {"exception": (str(type(e)), e.value)}
+				return {"ret": "exception", "exception": (str(type(e)), e.value)}
 
 			# Convert return value back to JSON to ship over
 			sock.sendto(ret.encode('utf-8'), self.client_address)
@@ -76,14 +89,14 @@ class server:
 		def _handle(self, data):
 			print(['request', self.client_address, data])
 			if data['cmd'] == 'getconfig':
-				return self.server._config
+				return {"ret": "ok", 'config': self.server._config}
 			elif data['cmd'] == 'packet':
 				print(['packet', data['packet']])
 				return {"ret": "ok"}
 			else:
 				print("Unknown command")
 				print(data)
-				return {"error": 'Unrecognized command'}
+				return {"ret": 'error', "error": 'Unrecognized command'}
 
 	def load(self, fname):
 		"""
@@ -192,7 +205,7 @@ class client:
 		elif 'exception' in ret:
 			raise Exception("Server exception: %s(%s)" % ret['exception'])
 
-		return ret
+		return ret['config']
 
 	def sendpacket(self, packet):
 		req = {
