@@ -15,6 +15,9 @@ python3 -m build
 pip3 install dist/pyrtl433net-1.0.tar.gz
 ```
 
+On each client, you must install rtl_433, see (https://github.com/merbanan/rtl_433/blob/master/docs/BUILDING.md)[https://github.com/merbanan/rtl_433/blob/master/docs/BUILDING.md].
+Of course you must also have an SDR of some kind too.
+
 # Use
 
 After installation on server and client, invoke in the following way.
