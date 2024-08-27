@@ -86,6 +86,13 @@ The server parameter is the server object instance itself.
 The client parameter is the (IP,PORT) tuple.
 The packet parameter is the JSON object given to pyrtl433net by rtl_433 output plus any metadata you have injected with rtl433.metadata config options.
 
+For example, a packet from my Ecowitt WS85 wind/rain sensor and an Ecowitt WH51 soil moisture sensor:
+```
+{'time': '2024-08-27 10:17:45', 'model': 'ws85', 'count': 1, 'num_rows': 1, 'rows': [{'len': 258, 'data': '850029659382c00a590c3fff6000010001372e01ffdffd00006b3bde000000000'}], 'codes': ['{258}850029659382c00a590c3fff6000010001372e01ffdffd00006b3bde000000000'], 'mod': 'FSK', 'freq1': 914.953, 'freq2': 915.034, 'rssi': -9.266, 'snr': 14.127, 'noise': -23.394}
+{'time': '2024-08-27 11:29:44', 'model': 'Fineoffset-WH51', 'id': '0e1f92', 'battery_ok': 1.0, 'battery_mV': 1600, 'moisture': 42, 'boost': 0, 'ad_raw': 229, 'mic': 'CRC', 'mod': 'FSK', 'freq1': 914.957, 'freq2': 915.029, 'rssi': -0.114, 'snr': 23.835, 'noise': -23.949}
+```
+Note that the WS85 is not currently recognized by the rtl_433 decoders and is raw data as described by the custom decoder in the server.cfg.
+
 # Module use comments
 The purpose of this python module is to be able to deploy multiple SDR's in an area and push all received radio packets to a central location for processing.
 This means the server should be able to handle receiving duplicate packets from multiple radios and do so gracefully.
