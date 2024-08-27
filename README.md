@@ -50,7 +50,7 @@ WS85 = m=FSK_PCM,s=58,l=58,r=2048,preamble=aa2dd4
 ```
 
 > [!NOTE]
-> interface is 0.0.0.0 by default and stanard port is 4333 (a play on 433 in rtl_433).
+> interface is 0.0.0.0 by default and standard port is 4333 (a play on 433 in rtl_433).
 > The other parameters are also not required, if not provided then no options will be generated to rtl_433 so you will get its default behavior.
 
 The server requires some sort of python handler of the packets.
@@ -67,6 +67,10 @@ def rtl433_handler(server, client, packet):
 > [!NOTE]
 > The function must be exactly as shown with the function name, three positional parameters, and their names.
 > Anything else is not accepted.
+
+The server parameter is the server object instance itself.
+The client parameter is the (IP,PORT) tuple.
+The packet parameter is the JSON object given to pyrtl433net by rtl_433 output plus any metadata you have injected with rtl433.metadata config options.
 
 # Module use comments
 The purpose of this python module is to be able to deploy multiple SDR's in an area and push all received radio packets to a central location for processing.
