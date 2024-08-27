@@ -6,6 +6,16 @@ rtl_433 is a C-based app that interfaces with software defined radios (SDR) such
 This comes as a server/client combo where the clients will run rtl_433 and pipe the output to the server.
 On the server you must add functionality to pipe the data to your.
 
+# Motivation
+The problem being solved is the need to have multiple SDR's around the house to receive sensors distributed around the house.
+Due to walls, dirt, etc not all sensors can be within range of a single radio.
+This, thus, poses a logistic problem of having a pool of sensors and need for multiple radios that WILL have overlap.
+One way to solve this is to filter sensors on each radio, another way is to poool all packets to a single location and deal with duplicate packets.
+
+A Raspberry Pi (either a 3/4/5/etc or a Pi Zero W or whatever) using a USB-based SDR is in the range of $50-75 so having a few of these to adequately cover all sensors is doable.
+
+This would also permit large area coverage provided you have ethernet or wifi coverage (ie, a shed that is 100 yards away but has point-to-point wifi bridge) without having to have ISM-banded sensors needing signal boosters.
+
 # Installation
 
 Installation is easy
