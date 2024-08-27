@@ -7,6 +7,7 @@ This comes as a server/client combo where the clients will run rtl_433 and pipe 
 On the server you must add functionality to pipe the data to whatever you want to use to actually process the data.
 
 Essentially, this is a IP/UDP transport and aggregator for SDR's.
+Go a step further and run a client in a remote location and tunnel the IP stream over a VPN if you want.
 
 # Motivation
 The problem being solved is the need to have multiple SDR's around the house to receive sensors distributed around the house.
@@ -104,6 +105,7 @@ What the function does with the packet is entirely up to you.
 - Filter out sensors and send as MQTT messages
 - Send Push or SMS notifications based on data received
 - Throttle packets so sensors that update too often are restricted
+- Tag each packet with a location, and push multiple locations into a single center
 
 Please note that this server model does not use threads or anything fancy, so the time spent in the handler WILL make other clients wait.
 So if your handler is not deterministic and not speedy, you may experience dropped packets.
