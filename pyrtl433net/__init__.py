@@ -36,6 +36,7 @@ import json
 import socket
 import socketserver
 import sys
+import time
 
 DEFAULT_PORT = 4333
 DEFAULT_BIN = 'rtl_433'
@@ -246,12 +247,17 @@ class client:
 		@data is a python object that is serialized as JSON and UTF-8 encoded.
 		The response is likewise assumed to be UTF-8 encoded JSON and returned as a python object.
 		"""
-		print("Sending to %s:%d" % (self._host,self._port))
+		print("Sending to %s:%d: %s" % (self._host,self._port, data))
 
 		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		s.settimeout(1.0)
-		s.sendto(json.dumps(data).encode('utf-8'), (self._host,self._port))
-		ret = s.recv(1024*10)
+		try:
+			s.sendto(json.dumps(data).encode('utf-8'), (self._host,self._port))
+			ret = s.recv(1024*10)
+		except socket.timeout:
+			# Sever may be down? Move along
+			return None
+
 		ret = ret.decode('utf-8')
 		ret = json.loads(ret)
 		return ret
@@ -264,11 +270,20 @@ class client:
 		req = {
 			'cmd': 'getconfig',
 		}
-		ret = self.write(req)
-		if 'error' in ret:
-			raise Exception("Response error: %s" % ret['error'])
-		elif 'exception' in ret:
-			raise Exception("Server exception: %s(%s)" % ret['exception'])
+		# Keep looping until config is read
+		while True:
+			ret = self.write(req)
+			if ret is None:
+				print("No server found, retrying...")
+				time.sleep(1.0)
+				continue
+
+			elif 'error' in ret:
+				raise Exception("Response error: %s" % ret['error'])
+			elif 'exception' in ret:
+				raise Exception("Server exception: %s(%s)" % ret['exception'])
+
+			break
 
 		return ret['config']
 
@@ -282,15 +297,18 @@ class client:
 			'packet': packet,
 		}
 		ret = self.write(req)
-		if 'error' in ret:
+		if ret is None:
+			print("No data received, server down?")
+			return None
+		elif 'error' in ret:
 			raise Exception("Response error: %s" % ret['error'])
 		elif 'exception' in ret:
 			raise Exception("Server exception: %s(%s)" % ret['exception'])
 
 		# TODO: return something if the configuration changed
 
-		# Nothing back from the server
-		return None
+		# Nothing back from the server, return empty dictionary (different from None)
+		return {}
 
 	@staticmethod
 	def config_to_args(cfg):

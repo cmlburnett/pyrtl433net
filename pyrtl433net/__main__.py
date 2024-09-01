@@ -32,6 +32,7 @@ def main_client(args):
 	with pyrtl433net.client(args.client[0]) as cli:
 		cnt = 1
 		while True:
+			print("Connecting...")
 			try:
 				_main_client_innerloop(cli, args)
 			except socket.timeout:
@@ -40,7 +41,7 @@ def main_client(args):
 
 			# Iteration counter
 			cnt += 1
-			time.sleep(1.0)
+			time.sleep(2.0)
 
 def _main_client_innerloop(cli, args):
 	"""
@@ -57,24 +58,31 @@ def _main_client_innerloop(cli, args):
 	opts.append('-F')
 	opts.append('json')
 
+	print(" ".join(opts))
 	if args.dryrun:
-		print(" ".join(opts))
 		sys.exit(0)
 
 	# TODO: look at stderr and use return code to interpret why rtl_433 quit
 	with subprocess.Popen(opts, stdout=subprocess.PIPE) as p:
-		while True:
-			if p.poll() is not None:
-				print(p.returncode)
-				return
+		try:
+			while True:
+				if p.poll() is not None:
+					# Process quit, so return
+					return
 
-			line = p.stdout.readline()
-			line = line.decode('utf-8')
-			line = line.strip()
-			if len(line):
-				j = json.loads(line)
-				print(j)
-				cli.sendpacket(j)
+				line = p.stdout.readline()
+				line = line.decode('utf-8')
+				line = line.strip()
+				if len(line):
+					j = json.loads(line)
+					ret = cli.sendpacket(j)
+					if ret is None:
+						print("Failed to received, quit reading data until new config received...")
+						# Server stopped responding, fall out and reconnect to get fresh config
+						return
+		finally:
+			# Can't return without killing the process first
+			p.kill()
 
 	return
 
