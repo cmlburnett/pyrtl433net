@@ -95,7 +95,7 @@ class server:
 				ret = self._handle(j)
 				ret = json.dumps(ret)
 			except Exception as e:
-				return {"ret": "exception", "exception": (str(type(e)), e.value)}
+				return {"ret": "exception", "exception": (str(type(e)), e.args)}
 
 			# Convert return value back to JSON to ship over
 			sock.sendto(ret.encode('utf-8'), self.client_address)
