@@ -257,6 +257,9 @@ class client:
 		except socket.timeout:
 			# Sever may be down? Move along
 			return None
+		except OSError:
+			# Can be a "OSError: [Errno 101] Network is unreachable"
+			return None
 
 		ret = ret.decode('utf-8')
 		ret = json.loads(ret)
