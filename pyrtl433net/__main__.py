@@ -75,7 +75,8 @@ def _main_client_innerloop(cli, args):
 				line = line.strip()
 				if len(line):
 					j = json.loads(line)
-					ret = cli.sendpacket(j)
+
+					ret = send_repeat(cli, j)
 					if ret is None:
 						print("Failed to received, quit reading data until new config received...")
 						# Server stopped responding, fall out and reconnect to get fresh config
@@ -85,6 +86,19 @@ def _main_client_innerloop(cli, args):
 			p.kill()
 
 	return
+
+def send_repeat(cli, dat, repeat=5):
+	cnt = 0
+	while cnt < repeat:
+		ret = cli.sendpacket(dat)
+		if ret is not None:
+			return ret
+
+		print("\tRepeat %d of %d" % (cnt, repeat))
+		cnt += 1
+
+	# Tried @repeat times
+	return None
 
 def main(args=None):
 	args = pyrtl433net.parse_args(args)
