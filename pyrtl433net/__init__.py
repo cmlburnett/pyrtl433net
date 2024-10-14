@@ -261,9 +261,13 @@ class client:
 			# Can be a "OSError: [Errno 101] Network is unreachable"
 			return None
 
-		ret = ret.decode('utf-8')
-		ret = json.loads(ret)
-		return ret
+		try:
+			ret = ret.decode('utf-8')
+			ret = json.loads(ret)
+			return ret
+		except:
+			# Random parsting error, probably junk packet then
+			return None
 
 	def getconfig(self):
 		"""
